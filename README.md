@@ -1,4 +1,5 @@
 # flutter_security_detection
+[![pub.dev](https://img.shields.io/pub/v/flutter_security_detection.svg)](https://pub.dev/packages/flutter_security_detection)
 
 <div dir="rtl">
 
