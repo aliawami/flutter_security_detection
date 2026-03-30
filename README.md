@@ -1,3 +1,6 @@
+# flutter_security_detection
+
+<div dir="rtl">
 
 # flutter_security_detection
 
@@ -6,6 +9,8 @@
 [![pub.dev](https://img.shields.io/pub/v/flutter_security_detection.svg)](https://pub.dev/packages/flutter_security_detection)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/aliAlawami/flutter_security_detection/blob/main/LICENSE)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-green.svg)](https://pub.dev/packages/flutter_security_detection)
+[![likes](https://img.shields.io/pub/likes/flutter_security_detection)](https://pub.dev/packages/flutter_security_detection)
+[![pub points](https://img.shields.io/pub/points/flutter_security_detection)](https://pub.dev/packages/flutter_security_detection)
 
 Enterprise-grade security package for Flutter. Detects Frida instrumentation, jailbreak, root, emulator, and hook frameworks with built-in go_router integration.
 
