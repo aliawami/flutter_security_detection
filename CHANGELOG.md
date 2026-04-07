@@ -1,3 +1,10 @@
+## 0.1.1
+
+* Added CodeQL static analysis CI (Dart, Android Kotlin, iOS Swift)
+* Added OpenSSF Scorecard for supply-chain security monitoring
+* Added SECURITY.md with private vulnerability reporting policy
+* Fixed README: corrected go_router version to ^17.1.0
+
 ## 0.1.0
 
 * Initial release
