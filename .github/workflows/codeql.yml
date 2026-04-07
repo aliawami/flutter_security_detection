@@ -118,6 +118,7 @@ jobs:
           languages: swift
 
       # Explicit build — avoids autobuild failure on unsigned Flutter plugin
+      # NOTE: do NOT pipe through xcpretty — it breaks CodeQL's Swift tracer (libtrace.dylib)
       - name: Build Swift plugin (no code signing)
         continue-on-error: true   # ensure analyze always runs even if build has issues
         working-directory: example/ios
@@ -130,8 +131,7 @@ jobs:
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGN_IDENTITY="" \
-            ONLY_ACTIVE_ARCH=NO \
-            | xcpretty || true
+            ONLY_ACTIVE_ARCH=NO
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
