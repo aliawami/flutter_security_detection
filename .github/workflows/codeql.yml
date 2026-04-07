@@ -75,6 +75,7 @@ jobs:
       # flutter build apk properly orchestrates Flutter engine + plugin compilation.
       # Raw gradlew assembleDebug skips Flutter's build wiring and fails on GeneratedPluginRegistrant.
       - name: Build Android via Flutter (compiles plugin + app together)
+        continue-on-error: true   # ensure analyze always runs even if build has issues
         working-directory: example
         run: flutter build apk --debug
 
@@ -115,6 +116,7 @@ jobs:
 
       # Explicit build — avoids autobuild failure on unsigned Flutter plugin
       - name: Build Swift plugin (no code signing)
+        continue-on-error: true   # ensure analyze always runs even if build has issues
         working-directory: example/ios
         run: |
           xcodebuild build \
