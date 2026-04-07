@@ -11,6 +11,9 @@
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-green.svg)](https://pub.dev/packages/flutter_security_detection)
 [![likes](https://img.shields.io/pub/likes/flutter_security_detection)](https://pub.dev/packages/flutter_security_detection)
 [![pub points](https://img.shields.io/pub/points/flutter_security_detection)](https://pub.dev/packages/flutter_security_detection)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/aliawami/flutter_security_detection/badge)](https://securityscorecards.dev/viewer/?uri=github.com/aliawami/flutter_security_detection)
+[![CodeQL](https://github.com/aliawami/flutter_security_detection/actions/workflows/codeql.yml/badge.svg)](https://github.com/aliawami/flutter_security_detection/actions/workflows/codeql.yml)
+[![Socket Badge](https://socket.dev/api/badge/npm/package/flutter_security_detection)](https://socket.dev/gh/aliawami/flutter_security_detection)
 
 Enterprise-grade security package for Flutter. Detects Frida instrumentation, jailbreak, root, emulator, and hook frameworks with built-in go_router integration.
 
