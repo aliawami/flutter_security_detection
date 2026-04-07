@@ -72,15 +72,11 @@ jobs:
         with:
           languages: java-kotlin   # correct identifier for Kotlin in CodeQL
 
-      # Build from the example/android project which has the full Gradle setup
-      - name: Build Android plugin via example app
-        working-directory: example/android
-        run: |
-          chmod +x gradlew
-          ./gradlew assembleDebug -x test --no-daemon \
-            -Pdart-defines="" \
-            -Plocal-engine-repo="" 2>&1 || \
-          ./gradlew assembleDebug -x test --no-daemon 2>&1
+      # flutter build apk properly orchestrates Flutter engine + plugin compilation.
+      # Raw gradlew assembleDebug skips Flutter's build wiring and fails on GeneratedPluginRegistrant.
+      - name: Build Android via Flutter (compiles plugin + app together)
+        working-directory: example
+        run: flutter build apk --debug
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v4
