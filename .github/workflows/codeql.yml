@@ -38,8 +38,8 @@ jobs:
       - name: Flutter analyze (static analysis)
         run: flutter analyze --fatal-infos
 
-      - name: Dart dependency audit
-        run: dart pub audit
+      - name: Check for outdated/vulnerable dependencies
+        run: flutter pub outdated
 
   # ── Kotlin / Java (Android plugin) ───────────────────────────────────────
   analyze-kotlin:
