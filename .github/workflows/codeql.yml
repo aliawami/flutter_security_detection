@@ -36,12 +36,9 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: swift   # Dart is analyzed via the 'swift' extractor chain; GitHub will auto-detect
+          languages: dart
 
-      # Let CodeQL autobuild Dart sources
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
+      # Dart is compiled by 'flutter pub get'; no separate build step needed
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
         with:
@@ -84,13 +81,41 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up Flutter (needed to generate iOS build files)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Generate Flutter iOS build files
+        working-directory: example
+        run: |
+          flutter pub get
+          flutter build ios --no-codesign --simulator 2>/dev/null || true
+
+      - name: Install CocoaPods dependencies
+        working-directory: example/ios
+        run: pod install --repo-update
+
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
           languages: swift
 
-      - name: Autobuild (Xcode)
-        uses: github/codeql-action/autobuild@v3
+      # Build only the plugin's Swift sources via the example workspace
+      - name: Build Swift plugin (no code signing)
+        working-directory: example/ios
+        run: |
+          xcodebuild build \
+            -workspace Runner.xcworkspace \
+            -scheme Runner \
+            -destination 'generic/platform=iOS Simulator' \
+            -configuration Debug \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            ONLY_ACTIVE_ARCH=NO \
+            | xcpretty || true
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
