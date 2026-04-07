@@ -1,11 +1,5 @@
 # flutter_security_detection
 
-<div dir="rtl">
-
-# flutter_security_detection
-
-</div>
-
 [![pub.dev](https://img.shields.io/pub/v/flutter_security_detection.svg)](https://pub.dev/packages/flutter_security_detection)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/aliAlawami/flutter_security_detection/blob/main/LICENSE)
 [![platform](https://img.shields.io/badge/platform-android%20%7C%20ios-green.svg)](https://pub.dev/packages/flutter_security_detection)
@@ -64,7 +58,7 @@ Add to your `pubspec.yaml`:
 ```yaml
 dependencies:
   flutter_security_detection: ^0.1.0
-  go_router: ^14.0.0
+  go_router: ^17.1.0
 ```
 ```bash
 flutter pub get
