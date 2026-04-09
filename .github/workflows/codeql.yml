@@ -45,7 +45,7 @@ jobs:
         run: flutter pub outdated
 
       - name: OSV Scanner (known vulnerability check)
-        uses: google/osv-scanner-action@v2.3.5
+        uses: google/osv-scanner-action/osv-scanner-action@v2.3.5
         with:
           scan-args: |-
             --lockfile=pubspec.lock
