@@ -1,3 +1,8 @@
+## 0.1.2
+
+* Enhanced CI security workflows with OSV scanner integration
+* Updated CodeQL workflow configurations
+
 ## 0.1.1
 
 * Added CodeQL static analysis CI (Dart, Android Kotlin, iOS Swift)

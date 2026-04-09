@@ -1,6 +1,6 @@
 name: flutter_security_detection
 description: Enterprise-grade Frida, jailbreak, root, emulator, and hook detection for Flutter with go_router integration.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/aliawami/flutter_security_detection
 repository: https://github.com/aliawami/flutter_security_detection
 issue_tracker: https://github.com/aliawami/flutter_security_detection/issues
