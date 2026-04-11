@@ -6,7 +6,7 @@ on:
   pull_request:
     branches: [main]
   schedule:
-    - cron: '0 6 * * 1'   # every Monday at 06:00 UTC
+    - cron: '0 6 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -18,19 +18,16 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  # ── Dart / Flutter ────────────────────────────────────────────────────────
-  # NOTE: CodeQL does not support Dart as a language.
-  # This job runs flutter analyze + OSV Scanner as the Dart quality gate.
   analyze-dart:
     name: Dart Analyze & Audit
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
           cache: true
@@ -38,72 +35,67 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Flutter analyze (static analysis)
+      - name: Flutter analyze
         run: flutter analyze --fatal-infos
 
-      - name: Check for outdated/vulnerable dependencies
+      - name: Check for outdated dependencies
         run: flutter pub outdated
 
-      - name: OSV Scanner (known vulnerability check)
-        uses: google/osv-scanner-action/osv-scanner-action@v2.3.5
+      - name: OSV Scanner
+        uses: google/osv-scanner-action/osv-scanner-action@1f1242919d8a60496dd1874b24b62b2370ed4c78 # v2.3.5
         with:
           scan-args: |-
             --lockfile=pubspec.lock
 
-  # ── Kotlin / Java (Android plugin) ───────────────────────────────────────
   analyze-kotlin:
     name: CodeQL — Kotlin (Android)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
       - name: Set up Flutter
-        # Flutter SDK is required so Gradle can resolve the Flutter engine artifact
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
           cache: true
 
       - name: Set up Java 17
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v4
         with:
           distribution: temurin
           java-version: '17'
 
-      - name: Resolve Flutter dependencies for example app
+      - name: Resolve Flutter dependencies
         working-directory: example
         run: flutter pub get
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # v3
         with:
-          languages: java-kotlin   # correct identifier for Kotlin in CodeQL
+          languages: java-kotlin
 
-      # flutter build apk properly orchestrates Flutter engine + plugin compilation.
-      # Raw gradlew assembleDebug skips Flutter's build wiring and fails on GeneratedPluginRegistrant.
-      - name: Build Android via Flutter (compiles plugin + app together)
-        continue-on-error: true   # ensure analyze always runs even if build has issues
+      - name: Build Android via Flutter
+        continue-on-error: true
         working-directory: example
         run: flutter build apk --debug
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v3
         with:
           category: /language:java-kotlin
 
-  # ── Swift (iOS plugin) ────────────────────────────────────────────────────
   analyze-swift:
     name: CodeQL — Swift (iOS)
-    runs-on: macos-latest   # Swift requires macOS; free for public repos
+    runs-on: macos-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
 
-      - name: Set up Flutter (needed to generate iOS build files)
-        uses: subosito/flutter-action@v2
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
           cache: true
@@ -119,14 +111,12 @@ jobs:
         run: pod install
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v4
+        uses: github/codeql-action/init@c10b8064de6f491fea524254123dbe5e09572f13 # v3
         with:
           languages: swift
 
-      # Explicit build — avoids autobuild failure on unsigned Flutter plugin
-      # NOTE: do NOT pipe through xcpretty — it breaks CodeQL's Swift tracer (libtrace.dylib)
-      - name: Build Swift plugin (no code signing)
-        continue-on-error: true   # ensure analyze always runs even if build has issues
+      - name: Build Swift plugin
+        continue-on-error: true
         working-directory: example/ios
         run: |
           xcodebuild build \
@@ -140,6 +130,6 @@ jobs:
             ONLY_ACTIVE_ARCH=NO
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v4
+        uses: github/codeql-action/analyze@c10b8064de6f491fea524254123dbe5e09572f13 # v3
         with:
           category: /language:swift
