@@ -13,6 +13,7 @@ on:
 permissions:
   security-events: write
   contents: read
+  actions: read        # ← add this
 
 jobs:
   scan-scheduled:
