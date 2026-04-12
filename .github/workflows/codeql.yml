@@ -42,7 +42,7 @@ jobs:
         run: flutter pub outdated
 
       - name: OSV Scanner
-        uses: google/osv-scanner-action/osv-scanner-action@1f1242919d8a60496dd1874b24b62b2370ed4c78 # v2.3.5
+        uses: google/osv-scanner-action/osv-scanner-action@c51854704019a247608d928f370c98740469d4b5 # v2.3.5
         with:
           scan-args: |-
             --lockfile=pubspec.lock
