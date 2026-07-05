@@ -3,9 +3,7 @@ package com.aliAlawami.flutter_security_detection
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 
 internal object RootDetector {
 
@@ -43,7 +41,9 @@ internal object RootDetector {
         if (isRootPackageInstalled(context)) threats.add("root_app_found")
         if (hasTestKeys()) threats.add("test_keys_found")
         if (hasDangerousProps()) threats.add("dangerous_props_found")
-        if (canExecuteSuCommand()) threats.add("su_command_executed")
+        // Executing `su -c id` was removed in 0.2.0: it popped a superuser
+        // grant dialog on rooted users' devices and could block ~10s.
+        // The su binary file check above covers the same signal passively.
 
         return Pair(threats.isNotEmpty(), threats)
     }
@@ -74,27 +74,20 @@ internal object RootDetector {
 
     // Check 4: Dangerous system properties
     private fun hasDangerousProps(): Boolean {
-        return try {
-            DANGEROUS_PROPS.any { (prop, dangerousValue) ->
-                val process = Runtime.getRuntime().exec("getprop $prop")
-                val reader = BufferedReader(InputStreamReader(process.inputStream))
-                val value = reader.readLine()?.trim()
-                value == dangerousValue
-            }
-        } catch (e: Exception) {
-            false
+        return DANGEROUS_PROPS.any { (prop, dangerousValue) ->
+            readSystemProperty(prop) == dangerousValue
         }
     }
 
-    // Check 5: Can actually run su — strongest signal
-    private fun canExecuteSuCommand(): Boolean {
+    private fun readSystemProperty(prop: String): String? {
+        var process: Process? = null
         return try {
-            val process = Runtime.getRuntime().exec(arrayOf("su", "-c", "id"))
-            val reader = BufferedReader(InputStreamReader(process.inputStream))
-            val output = reader.readLine()
-            output?.contains("uid=0") == true
+            process = Runtime.getRuntime().exec(arrayOf("getprop", prop))
+            process.inputStream.bufferedReader().use { it.readLine()?.trim() }
         } catch (e: Exception) {
-            false
+            null
+        } finally {
+            process?.destroy()
         }
     }
 }

@@ -1,3 +1,53 @@
+## 0.2.0
+
+**Breaking**
+
+* New `ShieldThreat` values were added (see below) — exhaustive `switch`
+  statements over the enum need new cases, and the generated
+  `ShieldResult.when`/`maybeWhen` signatures gained a `checkFailed`
+  parameter.
+* `ShieldThreat.fromString` no longer throws on unrecognized input; it
+  returns `ShieldThreat.unknown` instead.
+
+**Critical fix**
+
+* Fixed a crash on compromised iOS devices: the native side emitted threat
+  strings (`frida_env_found`, `suspicious_symlink`, `dylib_injected`,
+  `debugger_attached`, `debug_env_found`) that the Dart `ShieldThreat` enum
+  did not contain, so `ShieldThreat.fromString` threw during `init()` —
+  the app crashed at startup instead of showing the blocked screen.
+  All five values are now in the enum, and unrecognized strings fall back
+  to `ShieldThreat.unknown` so version skew can never crash a consumer app.
+
+**Detection fixes**
+
+* Added the `<queries>` declarations required on Android 11+ — without them,
+  package-visibility filtering silently disabled `root_app_found`,
+  `lsposed_found`, `hook_package_found`, and `emulator_package_found`.
+* Emulator detection no longer treats an empty radio version as a signal;
+  real Wi-Fi-only devices (tablets without cellular) were false-positived
+  and permanently blocked.
+
+**Behavior changes**
+
+* Removed the `su -c id` execution check — it popped a superuser grant
+  dialog on rooted users' devices at launch and could block for ~10 seconds.
+  The passive `su` binary file check covers the same signal.
+  `ShieldThreat.suCommandExecuted` remains in the enum but is never emitted.
+* Internal errors now fail open instead of blocking: a native error,
+  malformed payload, or missing plugin implementation (web, desktop, widget
+  tests — previously an uncaught `MissingPluginException`) returns
+  `passed: true` with the new `ShieldResult.checkFailed` flag set, so real
+  threats still block but a transient bug never bricks the app. Consumers
+  wanting stricter behavior can inspect `checkFailed`.
+
+**Other**
+
+* Concurrent `check()` calls now share a single in-flight native check.
+* Fixed process/reader leaks in the Android `getprop` checks.
+* Filled in real podspec metadata and bundled the iOS privacy manifest.
+* Removed dead code (`shield_route_guard.dart`).
+
 ## 0.1.2
 
 * Enhanced CI security workflows with OSV scanner integration

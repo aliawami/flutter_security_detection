@@ -31,12 +31,12 @@ internal object DeviceIntegrityChecker {
         }
 
         if (enableEmulator) {
-            val (detected, threats) = EmulatorDetector.isEmulator(context)
+            val (_, threats) = EmulatorDetector.isEmulator(context)
             allThreats.addAll(threats)
         }
 
         if (enableHookDetection) {
-            val (detected, threats) = HookDetector.isHookFrameworkDetected(context)
+            val (_, threats) = HookDetector.isHookFrameworkDetected(context)
             allThreats.addAll(threats)
         }
 

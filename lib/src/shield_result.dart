@@ -11,6 +11,12 @@ abstract class ShieldResult with _$ShieldResult {
     required bool isRooted,
     required bool isFridaDetected,
     required List<ShieldThreat> threats,
+
+    /// True when the security check itself could not run (native error or
+    /// unsupported platform). `passed` is true in that case — the package
+    /// fails open on internal errors — so consumers who want stricter
+    /// behavior can inspect this flag and decide for themselves.
+    @Default(false) bool checkFailed,
   }) = _ShieldResult;
 
   factory ShieldResult.fromMap(Map<dynamic, dynamic> map) {

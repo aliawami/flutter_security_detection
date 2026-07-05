@@ -10,6 +10,7 @@ export 'src/shield_result.dart';
 class FlutterSecurityDetection {
   static ShieldConfig _config = const ShieldConfig();
   static ShieldResult? _cachedResult;
+  static Future<ShieldResult>? _inFlight;
 
   /// Initialize once — typically in main() before runApp()
   static Future<void> init({ShieldConfig config = const ShieldConfig()}) async {
@@ -47,7 +48,16 @@ class FlutterSecurityDetection {
       );
     }
 
-    _cachedResult ??= await FlutterSecurityDetectionChannel.checkDevice(_config);
+    if (_cachedResult != null) return _cachedResult!;
+
+    // Deduplicate concurrent callers (e.g. rapid router redirects) so only
+    // one native check runs; everyone awaits the same future.
+    _inFlight ??= FlutterSecurityDetectionChannel.checkDevice(_config);
+    try {
+      _cachedResult = await _inFlight!;
+    } finally {
+      _inFlight = null;
+    }
     return _cachedResult!;
   }
 

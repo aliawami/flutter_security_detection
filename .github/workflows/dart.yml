@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
@@ -29,6 +29,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
+      # Runs before codegen so a regenerated freezed file can't dirty the
+      # git tree and trip the dry-run's clean-state validation.
+      - name: Validate package for publishing
+        run: flutter pub publish --dry-run
+
       - name: Generate Freezed files
         run: dart run build_runner build --delete-conflicting-outputs
 
@@ -37,3 +42,34 @@ jobs:
 
       - name: Run tests
         run: flutter test
+
+      - name: Run example widget tests
+        run: flutter test
+        working-directory: example
+
+  build-android:
+    name: Build Android example
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Java
+        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          channel: stable
+          cache: true
+
+      # Compiles the plugin's Kotlin sources, which flutter test never touches.
+      - name: Build example APK
+        run: flutter build apk --debug
+        working-directory: example
