@@ -10,7 +10,7 @@ enum ShieldThreat {
   rootAppFound,
   testKeysFound,
   dangerousPropsFound,
-  // No longer emitted since 0.1.3 — executing `su` triggered a superuser
+  // No longer emitted since 0.2.0 — executing `su` triggered a superuser
   // prompt on rooted devices. Kept so existing switch statements compile.
   suCommandExecuted,
   // Emulator — Android

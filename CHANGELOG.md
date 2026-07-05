@@ -1,4 +1,13 @@
-## 0.1.3
+## 0.2.0
+
+**Breaking**
+
+* New `ShieldThreat` values were added (see below) — exhaustive `switch`
+  statements over the enum need new cases, and the generated
+  `ShieldResult.when`/`maybeWhen` signatures gained a `checkFailed`
+  parameter.
+* `ShieldThreat.fromString` no longer throws on unrecognized input; it
+  returns `ShieldThreat.unknown` instead.
 
 **Critical fix**
 

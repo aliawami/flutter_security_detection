@@ -41,7 +41,7 @@ internal object RootDetector {
         if (isRootPackageInstalled(context)) threats.add("root_app_found")
         if (hasTestKeys()) threats.add("test_keys_found")
         if (hasDangerousProps()) threats.add("dangerous_props_found")
-        // Executing `su -c id` was removed in 0.1.3: it popped a superuser
+        // Executing `su -c id` was removed in 0.2.0: it popped a superuser
         // grant dialog on rooted users' devices and could block ~10s.
         // The su binary file check above covers the same signal passively.
 

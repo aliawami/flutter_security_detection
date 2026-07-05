@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_security_detection'
-  s.version          = '0.1.3'
+  s.version          = '0.2.0'
   s.summary          = 'Frida, jailbreak, root, emulator, and hook detection for Flutter.'
   s.description      = <<-DESC
 Enterprise-grade security detection for Flutter apps: Frida instrumentation,

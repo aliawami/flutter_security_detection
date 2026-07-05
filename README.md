@@ -56,7 +56,7 @@ Enterprise-grade security package for Flutter. Detects Frida instrumentation, ja
 Add to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  flutter_security_detection: ^0.1.0
+  flutter_security_detection: ^0.2.0
   go_router: ^17.1.0
 ```
 ```bash
@@ -134,6 +134,7 @@ await FlutterSecurityDetection.init(
     devMode: false,                   // وضع التطوير — الافتراضي: false
     blockedRoutePath: '/blocked',     // مسار شاشة الحظر — الافتراضي: '/blocked'
     blockedWidget: null,              // شاشة حظر مخصصة — الافتراضي: الشاشة المدمجة
+    onThreatDetected: (result) {},    // يُستدعى عند اكتشاف تهديد — الافتراضي: null
   ),
 );
 ```
