@@ -1,3 +1,29 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
   package="com.aliAlawami.flutter_security_detection">
+
+  <!-- Android 11+ (API 30) filters package visibility. Without these
+       declarations, PackageManager.getPackageInfo() throws
+       NameNotFoundException for these packages even when they are
+       installed, silently disabling root/hook/emulator app detection. -->
+  <queries>
+    <!-- Root managers -->
+    <package android:name="com.topjohnwu.magisk" />
+    <package android:name="com.kingroot.kinguser" />
+    <package android:name="com.koushikdutta.superuser" />
+    <package android:name="eu.chainfire.supersu" />
+    <package android:name="com.noshufou.android.su" />
+    <package android:name="com.thirdparty.superuser" />
+    <package android:name="com.yellowes.su" />
+    <!-- Hook frameworks -->
+    <package android:name="de.robv.android.xposed.installer" />
+    <package android:name="org.lsposed.manager" />
+    <package android:name="com.saurik.substrate" />
+    <package android:name="com.zachspong.temprootremovejb" />
+    <package android:name="com.amphoras.hidemyroot" />
+    <!-- Emulator launchers -->
+    <package android:name="com.google.android.launcher.layouts.genymotion" />
+    <package android:name="com.bluestacks" />
+    <package android:name="com.bignox.app" />
+    <package android:name="com.vphone.launcher" />
+  </queries>
 </manifest>

@@ -75,13 +75,14 @@ internal object EmulatorDetector {
         }
     }
 
-    // Check 4: Emulator-specific hardware identifiers
+    // Check 4: Emulator-specific hardware identifiers.
+    // An empty radio version is deliberately NOT treated as a signal —
+    // real Wi-Fi-only devices (tablets without cellular) have no baseband
+    // and would be false-positived as emulators.
     private fun hasEmulatorHardware(): Boolean {
-        val radio = Build.getRadioVersion()
         val hardware = Build.HARDWARE
-
-        return radio.isNullOrEmpty() ||
-                hardware.contains("goldfish", ignoreCase = true) ||
-                hardware.contains("ranchu", ignoreCase = true)
+        return hardware.contains("goldfish", ignoreCase = true) ||
+                hardware.contains("ranchu", ignoreCase = true) ||
+                hardware.contains("vbox86", ignoreCase = true)
     }
 }

@@ -64,7 +64,8 @@ void main() {
       expect(result.threats, contains(ShieldThreat.fridaPortOpen));
     });
 
-    test('fails secure when native throws PlatformException', () async {
+    test('fails open with checkFailed when native throws PlatformException',
+        () async {
       TestDefaultBinaryMessengerBinding
           .instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
@@ -75,8 +76,46 @@ void main() {
         const ShieldConfig(),
       );
 
-      // Fail secure — passed must be false when native crashes
+      // Internal errors never block the app — but they are flagged so
+      // consumers can enforce a stricter policy themselves.
+      expect(result.passed, true);
+      expect(result.checkFailed, true);
+      expect(result.threats, isEmpty);
+    });
+
+    test('fails open when plugin is missing (web/desktop/tests)', () async {
+      // No mock handler registered → invokeMethod throws
+      // MissingPluginException, exactly like an unsupported platform.
+      final result = await FlutterSecurityDetectionChannel.checkDevice(
+        const ShieldConfig(),
+      );
+
+      expect(result.passed, true);
+      expect(result.checkFailed, true);
+    });
+
+    test('unknown native threat strings do not crash and still block',
+        () async {
+      TestDefaultBinaryMessengerBinding
+          .instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+        return {
+          'passed': false,
+          'isJailbroken': true,
+          'isRooted': false,
+          'isFridaDetected': false,
+          'threats': ['cydia_found', 'some_threat_from_the_future'],
+        };
+      });
+
+      final result = await FlutterSecurityDetectionChannel.checkDevice(
+        const ShieldConfig(),
+      );
+
       expect(result.passed, false);
+      expect(result.checkFailed, false);
+      expect(result.threats, contains(ShieldThreat.cydiaFound));
+      expect(result.threats, contains(ShieldThreat.unknown));
     });
 
     test('passes correct arguments to native', () async {

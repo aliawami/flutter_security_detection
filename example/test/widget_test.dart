@@ -1,27 +1,59 @@
-// // This is a basic Flutter widget test.
-// //
-// // To perform an interaction with a widget in your test, use the WidgetTester
-// // utility in the flutter_test package. For example, you can send tap and scroll
-// // gestures. You can also use WidgetTester to find child widgets in the widget
-// // tree, read text, and verify that the values of widget properties are correct.
+import 'package:flutter/services.dart';
+import 'package:flutter_test/flutter_test.dart';
 
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_shield_example/main.dart';
 
-// import 'package:flutter_shield_example/main.dart';
+void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-// void main() {
-//   testWidgets('Verify Platform version', (WidgetTester tester) async {
-//     // Build our app and trigger a frame.
-//     await tester.pumpWidget(const MyApp());
+  const channel = MethodChannel('com.flutter_shield/security');
 
-//     // Verify that platform version is retrieved.
-//     expect(
-//       find.byWidgetPredicate(
-//         (Widget widget) =>
-//             widget is Text && widget.data!.startsWith('Running on:'),
-//       ),
-//       findsOneWidget,
-//     );
-//   });
-// }
+  /// Mocks the native side of the plugin so the security check completes
+  /// inside the widget test's fake-async zone.
+  void mockNativeCheck({required bool passed, List<String> threats = const []}) {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+      if (call.method == 'checkDevice') {
+        return {
+          'passed': passed,
+          'isJailbroken': false,
+          'isRooted': false,
+          'isFridaDetected': threats.isNotEmpty,
+          'threats': threats,
+        };
+      }
+      return null;
+    });
+  }
+
+  tearDown(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
+  });
+
+  testWidgets('home screen renders when the device check passes',
+      (WidgetTester tester) async {
+    mockNativeCheck(passed: true);
+
+    await tester.pumpWidget(const ExampleApp());
+    await tester.pumpAndSettle();
+
+    expect(find.text('Flutter Shield Example'), findsOneWidget);
+    expect(find.text('Run Security Check'), findsOneWidget);
+    expect(find.text('Device Not Secure'), findsNothing);
+  });
+
+  testWidgets('running a security check shows a clean result',
+      (WidgetTester tester) async {
+    mockNativeCheck(passed: true);
+
+    await tester.pumpWidget(const ExampleApp());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Run Security Check'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Passed'), findsOneWidget);
+    expect(find.text('None — device is clean'), findsOneWidget);
+  });
+}

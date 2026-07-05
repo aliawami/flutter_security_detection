@@ -182,21 +182,47 @@ if (!result.passed) {
 | `fridaPortOpen` | Both | Frida server port 27042 open | منفذ Frida مفتوح |
 | `fridaLibraryFound` | Both | Frida agent in memory | مكتبة Frida في الذاكرة |
 | `fridaFileFound` | Both | Frida binary on disk | ملف Frida على الجهاز |
+| `fridaProcessFound` | Android | Frida process running | عملية Frida قيد التشغيل |
+| `fridaEnvFound` | iOS | Frida environment variables | متغيرات بيئة Frida |
 | `suBinaryFound` | Android | su binary detected | ملف su موجود |
 | `rootAppFound` | Android | Root app installed | تطبيق روت مثبت |
 | `testKeysFound` | Android | Test-signed build | بناء بمفاتيح اختبار |
 | `dangerousPropsFound` | Android | Dangerous system props | خصائص نظام خطيرة |
 | `emulatorBuildProps` | Android | Emulator build fingerprint | بصمة بناء المحاكي |
 | `emulatorFilesFound` | Android | Emulator files on disk | ملفات المحاكي |
+| `emulatorPackageFound` | Android | Emulator launcher installed | مشغل محاكي مثبت |
 | `emulatorHardwareFound` | Android | Emulator hardware | عتاد المحاكي |
 | `xposedFrameworkFound` | Android | Xposed framework | إطار Xposed |
 | `lsposedFound` | Android | LSPosed manager | مدير LSPosed |
+| `hookPackageFound` | Android | Hook management app installed | تطبيق اعتراض مثبت |
+| `xposedStackTrace` | Android | Xposed traces in stack | آثار Xposed في المكدس |
+| `debugModeEnabled` | Android | App is debuggable | التطبيق قابل للتصحيح |
+| `adbEnabled` | Android | ADB debugging enabled | تصحيح ADB مفعل |
 | `cydiaFound` | iOS | Cydia or jailbreak files | ملفات الجيلبريك |
 | `suspiciousDylib` | iOS | MobileSubstrate loaded | MobileSubstrate محمل |
 | `sandboxBreach` | iOS | Sandbox write succeeded | اختراق الحماية |
 | `forkAllowed` | iOS | Process spawn succeeded | إنتاج العمليات |
+| `suspiciousSymlink` | iOS | Jailbreak symlinks present | روابط رمزية للجيلبريك |
+| `dylibInjected` | iOS | DYLD library injection | حقن مكتبة DYLD |
 | `debuggerAttached` | iOS | Debugger attached | مصحح أخطاء متصل |
-| `debugModeEnabled` | Android | App is debuggable | التطبيق قابل للتصحيح |
+| `debugEnvFound` | iOS | Debug environment variables | متغيرات بيئة التصحيح |
+| `unknown` | Both | Unrecognized threat (version skew) | تهديد غير معروف |
+
+### Error handling / معالجة الأخطاء
+
+If the check itself cannot run — a native error, or an unsupported platform
+such as web, desktop, or widget tests — the package **fails open**:
+`passed` is `true` and `ShieldResult.checkFailed` is set. Real threats always
+block; internal errors never brick the app. Enforce a stricter policy if you
+need one:
+
+```dart
+final result = await FlutterSecurityDetection.check();
+if (result.checkFailed) {
+  // The check did not run. Retry with recheck(), or block if your
+  // compliance requirements demand fail-closed behavior.
+}
+```
 
 ---
 

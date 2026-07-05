@@ -20,6 +20,12 @@ mixin _$ShieldResult {
   bool get isFridaDetected;
   List<ShieldThreat> get threats;
 
+  /// True when the security check itself could not run (native error or
+  /// unsupported platform). `passed` is true in that case — the package
+  /// fails open on internal errors — so consumers who want stricter
+  /// behavior can inspect this flag and decide for themselves.
+  bool get checkFailed;
+
   /// Create a copy of ShieldResult
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -40,16 +46,24 @@ mixin _$ShieldResult {
                 other.isRooted == isRooted) &&
             (identical(other.isFridaDetected, isFridaDetected) ||
                 other.isFridaDetected == isFridaDetected) &&
-            const DeepCollectionEquality().equals(other.threats, threats));
+            const DeepCollectionEquality().equals(other.threats, threats) &&
+            (identical(other.checkFailed, checkFailed) ||
+                other.checkFailed == checkFailed));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, passed, isJailbroken, isRooted,
-      isFridaDetected, const DeepCollectionEquality().hash(threats));
+  int get hashCode => Object.hash(
+      runtimeType,
+      passed,
+      isJailbroken,
+      isRooted,
+      isFridaDetected,
+      const DeepCollectionEquality().hash(threats),
+      checkFailed);
 
   @override
   String toString() {
-    return 'ShieldResult(passed: $passed, isJailbroken: $isJailbroken, isRooted: $isRooted, isFridaDetected: $isFridaDetected, threats: $threats)';
+    return 'ShieldResult(passed: $passed, isJailbroken: $isJailbroken, isRooted: $isRooted, isFridaDetected: $isFridaDetected, threats: $threats, checkFailed: $checkFailed)';
   }
 }
 
@@ -64,7 +78,8 @@ abstract mixin class $ShieldResultCopyWith<$Res> {
       bool isJailbroken,
       bool isRooted,
       bool isFridaDetected,
-      List<ShieldThreat> threats});
+      List<ShieldThreat> threats,
+      bool checkFailed});
 }
 
 /// @nodoc
@@ -84,6 +99,7 @@ class _$ShieldResultCopyWithImpl<$Res> implements $ShieldResultCopyWith<$Res> {
     Object? isRooted = null,
     Object? isFridaDetected = null,
     Object? threats = null,
+    Object? checkFailed = null,
   }) {
     return _then(_self.copyWith(
       passed: null == passed
@@ -106,6 +122,10 @@ class _$ShieldResultCopyWithImpl<$Res> implements $ShieldResultCopyWith<$Res> {
           ? _self.threats
           : threats // ignore: cast_nullable_to_non_nullable
               as List<ShieldThreat>,
+      checkFailed: null == checkFailed
+          ? _self.checkFailed
+          : checkFailed // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -204,7 +224,7 @@ extension ShieldResultPatterns on ShieldResult {
   @optionalTypeArgs
   TResult maybeWhen<TResult extends Object?>(
     TResult Function(bool passed, bool isJailbroken, bool isRooted,
-            bool isFridaDetected, List<ShieldThreat> threats)?
+            bool isFridaDetected, List<ShieldThreat> threats, bool checkFailed)?
         $default, {
     required TResult orElse(),
   }) {
@@ -212,7 +232,7 @@ extension ShieldResultPatterns on ShieldResult {
     switch (_that) {
       case _ShieldResult() when $default != null:
         return $default(_that.passed, _that.isJailbroken, _that.isRooted,
-            _that.isFridaDetected, _that.threats);
+            _that.isFridaDetected, _that.threats, _that.checkFailed);
       case _:
         return orElse();
     }
@@ -234,14 +254,14 @@ extension ShieldResultPatterns on ShieldResult {
   @optionalTypeArgs
   TResult when<TResult extends Object?>(
     TResult Function(bool passed, bool isJailbroken, bool isRooted,
-            bool isFridaDetected, List<ShieldThreat> threats)
+            bool isFridaDetected, List<ShieldThreat> threats, bool checkFailed)
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ShieldResult():
         return $default(_that.passed, _that.isJailbroken, _that.isRooted,
-            _that.isFridaDetected, _that.threats);
+            _that.isFridaDetected, _that.threats, _that.checkFailed);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -262,14 +282,14 @@ extension ShieldResultPatterns on ShieldResult {
   @optionalTypeArgs
   TResult? whenOrNull<TResult extends Object?>(
     TResult? Function(bool passed, bool isJailbroken, bool isRooted,
-            bool isFridaDetected, List<ShieldThreat> threats)?
+            bool isFridaDetected, List<ShieldThreat> threats, bool checkFailed)?
         $default,
   ) {
     final _that = this;
     switch (_that) {
       case _ShieldResult() when $default != null:
         return $default(_that.passed, _that.isJailbroken, _that.isRooted,
-            _that.isFridaDetected, _that.threats);
+            _that.isFridaDetected, _that.threats, _that.checkFailed);
       case _:
         return null;
     }
@@ -284,7 +304,8 @@ class _ShieldResult implements ShieldResult {
       required this.isJailbroken,
       required this.isRooted,
       required this.isFridaDetected,
-      required final List<ShieldThreat> threats})
+      required final List<ShieldThreat> threats,
+      this.checkFailed = false})
       : _threats = threats;
 
   @override
@@ -302,6 +323,14 @@ class _ShieldResult implements ShieldResult {
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_threats);
   }
+
+  /// True when the security check itself could not run (native error or
+  /// unsupported platform). `passed` is true in that case — the package
+  /// fails open on internal errors — so consumers who want stricter
+  /// behavior can inspect this flag and decide for themselves.
+  @override
+  @JsonKey()
+  final bool checkFailed;
 
   /// Create a copy of ShieldResult
   /// with the given fields replaced by the non-null parameter values.
@@ -323,16 +352,24 @@ class _ShieldResult implements ShieldResult {
                 other.isRooted == isRooted) &&
             (identical(other.isFridaDetected, isFridaDetected) ||
                 other.isFridaDetected == isFridaDetected) &&
-            const DeepCollectionEquality().equals(other._threats, _threats));
+            const DeepCollectionEquality().equals(other._threats, _threats) &&
+            (identical(other.checkFailed, checkFailed) ||
+                other.checkFailed == checkFailed));
   }
 
   @override
-  int get hashCode => Object.hash(runtimeType, passed, isJailbroken, isRooted,
-      isFridaDetected, const DeepCollectionEquality().hash(_threats));
+  int get hashCode => Object.hash(
+      runtimeType,
+      passed,
+      isJailbroken,
+      isRooted,
+      isFridaDetected,
+      const DeepCollectionEquality().hash(_threats),
+      checkFailed);
 
   @override
   String toString() {
-    return 'ShieldResult(passed: $passed, isJailbroken: $isJailbroken, isRooted: $isRooted, isFridaDetected: $isFridaDetected, threats: $threats)';
+    return 'ShieldResult(passed: $passed, isJailbroken: $isJailbroken, isRooted: $isRooted, isFridaDetected: $isFridaDetected, threats: $threats, checkFailed: $checkFailed)';
   }
 }
 
@@ -349,7 +386,8 @@ abstract mixin class _$ShieldResultCopyWith<$Res>
       bool isJailbroken,
       bool isRooted,
       bool isFridaDetected,
-      List<ShieldThreat> threats});
+      List<ShieldThreat> threats,
+      bool checkFailed});
 }
 
 /// @nodoc
@@ -370,6 +408,7 @@ class __$ShieldResultCopyWithImpl<$Res>
     Object? isRooted = null,
     Object? isFridaDetected = null,
     Object? threats = null,
+    Object? checkFailed = null,
   }) {
     return _then(_ShieldResult(
       passed: null == passed
@@ -392,6 +431,10 @@ class __$ShieldResultCopyWithImpl<$Res>
           ? _self._threats
           : threats // ignore: cast_nullable_to_non_nullable
               as List<ShieldThreat>,
+      checkFailed: null == checkFailed
+          ? _self.checkFailed
+          : checkFailed // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
