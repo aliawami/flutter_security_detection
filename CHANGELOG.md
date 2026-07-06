@@ -1,3 +1,9 @@
+## 0.2.1
+
+* Added Swift Package Manager support for iOS. Apps using Flutter's SwiftPM
+  integration no longer see the "does not support Swift Package Manager"
+  warning. CocoaPods remains fully supported.
+
 ## 0.2.0
 
 **Breaking**
