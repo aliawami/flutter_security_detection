@@ -4,7 +4,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'flutter_security_detection'
-  s.version          = '0.2.0'
+  s.version          = '0.2.1'
   s.summary          = 'Frida, jailbreak, root, emulator, and hook detection for Flutter.'
   s.description      = <<-DESC
 Enterprise-grade security detection for Flutter apps: Frida instrumentation,
@@ -14,7 +14,7 @@ jailbreak, root, emulator, and hook framework detection with go_router integrati
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Ali Alawami' => 'alis2012@gmail.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
+  s.source_files = 'flutter_security_detection/Sources/flutter_security_detection/**/*.swift'
   s.dependency 'Flutter'
   s.platform = :ios, '13.0'
 
@@ -22,5 +22,5 @@ jailbreak, root, emulator, and hook framework detection with go_router integrati
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'EXCLUDED_ARCHS[sdk=iphonesimulator*]' => 'i386' }
   s.swift_version = '5.0'
 
-  s.resource_bundles = { 'flutter_security_detection_privacy' => ['Resources/PrivacyInfo.xcprivacy'] }
+  s.resource_bundles = { 'flutter_security_detection_privacy' => ['flutter_security_detection/Sources/flutter_security_detection/Resources/PrivacyInfo.xcprivacy'] }
 end
