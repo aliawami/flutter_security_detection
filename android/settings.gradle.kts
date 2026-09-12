@@ -1,7 +1,7 @@
 pluginManagement {
     plugins {
         id("com.android.library") version "8.7.3"
-        id("org.jetbrains.kotlin.android") version "2.4.0"
+        id("org.jetbrains.kotlin.android") version "2.4.20"
     }
     repositories {
         google()
