@@ -8,13 +8,31 @@
 [![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/aliawami/flutter_security_detection/badge)](https://securityscorecards.dev/viewer/?uri=github.com/aliawami/flutter_security_detection)
 [![CodeQL](https://github.com/aliawami/flutter_security_detection/actions/workflows/codeql.yml/badge.svg)](https://github.com/aliawami/flutter_security_detection/actions/workflows/codeql.yml)
 
-Enterprise-grade security package for Flutter. Detects Frida instrumentation, jailbreak, root, emulator, and hook frameworks with built-in go_router integration.
+Device integrity checks for Flutter. Detects Frida instrumentation, jailbreak, root, emulator, and hook frameworks, with a router-agnostic gate widget and optional runtime re-checks.
 
 ---
 
 <div dir="rtl">
 
-حزمة أمان متكاملة لتطبيقات Flutter. تكشف عن أدوات الاختراق مثل Frida، والأجهزة المكسورة (Jailbreak)، والأجهزة المُطوَّرة (Root)، والمحاكيات، وأطر الاعتراض — مع دعم مدمج لـ go_router.
+حزمة فحص سلامة الجهاز لتطبيقات Flutter. تكشف عن أدوات الاختراق مثل Frida، والأجهزة المكسورة (Jailbreak)، والأجهزة المُطوَّرة (Root)، والمحاكيات، وأطر الاعتراض — مع أداة جاهزة لحجب التطبيق وفحص دوري أثناء التشغيل.
+
+</div>
+
+---
+
+## Security model / نموذج الأمان
+
+> **These checks run on a device the attacker controls. A determined attacker can bypass them** — for example by hooking this plugin's method channel, patching the app, or hiding root. Treat this package as a **deterrent and a UX layer** that stops casual tampering and gives you a signal, **not as a security boundary**.
+>
+> Anything that matters must be enforced **on your server**: validate sessions, authorize every request, and for high-risk flows use server-verified attestation — [Play Integrity API](https://developer.android.com/google/play/integrity) on Android and [App Attest](https://developer.apple.com/documentation/devicecheck/establishing-your-app-s-integrity) on iOS. This package does not provide attestation.
+>
+> If you need a commercial-grade runtime protection suite, look at dedicated RASP products in addition to this package.
+
+<div dir="rtl">
+
+> **هذه الفحوصات تعمل على جهاز يتحكم به المهاجم، ويمكن لمهاجم مصمم تجاوزها** — مثلًا بالتعديل على قناة الاتصال الخاصة بالإضافة أو تعديل التطبيق أو إخفاء الروت. اعتبر هذه الحزمة **رادعًا وطبقة تجربة مستخدم** تمنع العبث البسيط وتمنحك إشارة، **وليست حدًا أمنيًا**.
+>
+> أي شيء مهم يجب فرضه **على الخادم**: تحقق من الجلسات، وصرّح لكل طلب، وللعمليات عالية الخطورة استخدم التحقق من الجهاز عبر الخادم: Play Integrity على أندرويد و App Attest على iOS. هذه الحزمة لا توفر هذه الخدمات.
 
 </div>
 
@@ -27,27 +45,12 @@ Enterprise-grade security package for Flutter. Detects Frida instrumentation, ja
 | 🔍 | Frida Detection | كشف Frida |
 | 📱 | Jailbreak Detection (iOS) | كشف الجيلبريك |
 | 🔓 | Root Detection (Android) | كشف الروت |
-| 🖥️ | Emulator Detection | كشف المحاكي |
-| 🪝 | Hook Framework Detection | كشف أطر الاعتراض |
-| 🛡️ | go_router Integration | تكامل مع go_router |
+| 🖥️ | Emulator Detection (Android) | كشف المحاكي |
+| 🪝 | Hook Framework Detection (Android) | كشف أطر الاعتراض |
+| 🛡️ | `ShieldGate` widget, works with any router | أداة حجب تعمل مع أي موجّه |
+| 🔁 | Opt-in re-checks on resume / on a timer | فحص دوري اختياري |
 | ⚙️ | Fully Configurable | قابل للتخصيص بالكامل |
 | 🧑‍💻 | devMode for safe development | وضع التطوير الآمن |
-
----
-
-## Why flutter_security_detection?
-
-| Feature | flutter_security_detection | flutter_jailbreak_detection | safe_device | freeRASP |
-|---|:---:|:---:|:---:|:---:|
-| Frida Detection | ✅ | ❌ | ❌ | ✅ |
-| Jailbreak / Root | ✅ | ✅ | ✅ | ✅ |
-| Emulator Detection | ✅ | ❌ | ❌ | ✅ |
-| Hook Frameworks | ✅ | ❌ | ❌ | ✅ |
-| go_router Integration | ✅ | ❌ | ❌ | ❌ |
-| devMode Flag | ✅ | ❌ | ❌ | ❌ |
-| Custom Blocked Screen | ✅ | ❌ | ❌ | ❌ |
-| Lightweight | ✅ | ✅ | ✅ | ❌ |
-| Open Source | ✅ | ✅ | ✅ | ⚠️ |
 
 ---
 
@@ -56,12 +59,13 @@ Enterprise-grade security package for Flutter. Detects Frida instrumentation, ja
 Add to your `pubspec.yaml`:
 ```yaml
 dependencies:
-  flutter_security_detection: ^0.2.0
-  go_router: ^17.1.0
+  flutter_security_detection: ^0.3.0
 ```
 ```bash
 flutter pub get
 ```
+
+The package has no dependency on any router.
 
 ---
 
@@ -78,6 +82,7 @@ void main() async {
   await FlutterSecurityDetection.init(
     config: ShieldConfig(
       devMode: kDebugMode, // safe in dev, full protection in release
+      recheckOnResume: true, // re-check when the app returns to foreground
       onThreatDetected: (result) {
         print('Threats: ${result.threats}');
       },
@@ -88,36 +93,74 @@ void main() async {
 }
 ```
 
-### 2. Add go_router Integration
+### 2. Wrap your app in `ShieldGate`
 ```dart
-final _router = GoRouter(
-  redirect: FlutterSecurityDetection.routerRedirect,
-  routes: [
-    GoRoute(
-      path: '/',
-      builder: (context, state) => const HomeScreen(),
-    ),
-    FlutterSecurityDetection.blockedRoute,
-  ],
-);
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(routerConfig: _router);
+    return MaterialApp(
+      // Works with Navigator, go_router, auto_route, ... — any router.
+      builder: (context, child) => ShieldGate(child: child!),
+      home: const HomeScreen(),
+    );
   }
 }
 ```
 
-That is all. Your app is now protected.
+`ShieldGate` shows your app only while the device passes. While the first
+check is running it shows a `loading` widget (empty by default), so protected
+UI never flashes on a compromised device. When a runtime re-check finds a
+threat, it swaps to the blocked screen on the spot.
 
 <div dir="rtl">
 
-هذا كل شيء. تطبيقك محمي الآن.
+يعرض `ShieldGate` تطبيقك فقط ما دام الجهاز يجتاز الفحص، ويستبدله بشاشة الحظر فور اكتشاف تهديد أثناء التشغيل.
 
 </div>
+
+### Using go_router
+
+The package does not depend on `go_router`; use the result listenable and
+`isBlocked` to build the redirect yourself:
+```dart
+final router = GoRouter(
+  // Re-evaluate the redirect when a runtime re-check changes the result.
+  refreshListenable: FlutterSecurityDetection.resultListenable,
+  redirect: (context, state) {
+    final blocked = FlutterSecurityDetection.isBlocked;
+    if (blocked && state.uri.path != '/blocked') return '/blocked';
+    if (!blocked && state.uri.path == '/blocked') return '/';
+    return null;
+  },
+  routes: [
+    GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
+    GoRoute(
+      path: '/blocked',
+      builder: (context, state) => const ShieldBlockedScreen(),
+    ),
+  ],
+);
+```
+`isBlocked` is `false` until the first check completes, so `await
+FlutterSecurityDetection.init()` before `runApp()` when you use this recipe.
+
+---
+
+## Runtime re-checks / الفحص أثناء التشغيل
+
+By default the check runs once, at `init()`. An attacker can attach Frida or
+enable a hook after launch, so you can opt in to more:
+```dart
+ShieldConfig(
+  recheckOnResume: true,                       // every time the app resumes
+  recheckInterval: const Duration(minutes: 5), // and/or on a timer
+)
+```
+Listen to `FlutterSecurityDetection.resultListenable` to react to changes.
+`onThreatDetected` fires when a check finds threats, and again when a later
+re-check reports a different failing result — not for an unchanged result.
 
 ---
 
@@ -132,8 +175,8 @@ await FlutterSecurityDetection.init(
     enableHookDetection: true,        // كشف أطر الاعتراض — الافتراضي: true
     enableDebugDetection: false,      // كشف وضع التصحيح — الافتراضي: false
     devMode: false,                   // وضع التطوير — الافتراضي: false
-    blockedRoutePath: '/blocked',     // مسار شاشة الحظر — الافتراضي: '/blocked'
-    blockedWidget: null,              // شاشة حظر مخصصة — الافتراضي: الشاشة المدمجة
+    recheckOnResume: false,           // فحص عند العودة للتطبيق — الافتراضي: false
+    recheckInterval: null,            // فحص دوري — الافتراضي: null
     onThreatDetected: (result) {},    // يُستدعى عند اكتشاف تهديد — الافتراضي: null
   ),
 );
@@ -143,30 +186,34 @@ await FlutterSecurityDetection.init(
 
 ## Custom Blocked Screen / شاشة حظر مخصصة
 ```dart
-await FlutterSecurityDetection.init(
-  config: ShieldConfig(
-    blockedWidget: Scaffold(
-      backgroundColor: Colors.red,
-      body: Center(
-        child: Text(
-          'هذا الجهاز غير آمن',
-          style: TextStyle(color: Colors.white, fontSize: 24),
-        ),
+ShieldGate(
+  blocked: const Scaffold(
+    backgroundColor: Colors.red,
+    body: Center(
+      child: Text(
+        'هذا الجهاز غير آمن',
+        style: TextStyle(color: Colors.white, fontSize: 24),
       ),
     ),
   ),
-);
+  loading: const Center(child: CircularProgressIndicator()),
+  child: child!,
+)
 ```
 
 ---
 
 ## Manual Check / فحص يدوي
 ```dart
-// Returns cached result from init()
+// Returns the latest result (runs a check if none exists yet)
 final result = await FlutterSecurityDetection.check();
 
 // Force a fresh check
 final result = await FlutterSecurityDetection.recheck();
+
+// Synchronous access to the latest result
+FlutterSecurityDetection.lastResult; // null before the first check
+FlutterSecurityDetection.isBlocked;  // false before the first check
 
 if (!result.passed) {
   print(result.threats);
@@ -258,6 +305,8 @@ config: ShieldConfig(devMode: false) // production
 **Android process scanning** — Due to Android's process namespace isolation and SELinux restrictions, `fridaProcessFound` is a best-effort signal. Port scanning and file detection are the primary Frida signals and work reliably across all Android versions.
 
 **Simulator** — Detection is intentionally skipped on the iOS Simulator at compile time via `#if targetEnvironment(simulator)`.
+
+**Client-side only** — See [Security model](#security-model--نموذج-الأمان) above. Every signal here can be defeated by an attacker who controls the device.
 
 **Determined attackers** — No detection solution is foolproof. A sophisticated attacker with full device control can bypass individual checks. `flutter_security_detection` raises the security bar significantly and satisfies most enterprise compliance requirements.
 

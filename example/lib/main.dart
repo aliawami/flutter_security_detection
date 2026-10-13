@@ -9,6 +9,7 @@ void main() async {
   await FlutterSecurityDetection.init(
     config: ShieldConfig(
       devMode: kDebugMode,
+      recheckOnResume: true,
       onThreatDetected: (result) {
         debugPrint('Threats: ${result.threats}');
       },
@@ -18,11 +19,22 @@ void main() async {
   runApp(const ExampleApp());
 }
 
+// go_router recipe: redirect while the device is blocked, and re-evaluate the
+// redirect whenever a runtime re-check changes the result.
 final _router = GoRouter(
-  redirect: FlutterSecurityDetection.routerRedirect,
+  refreshListenable: FlutterSecurityDetection.resultListenable,
+  redirect: (context, state) {
+    final blocked = FlutterSecurityDetection.isBlocked;
+    if (blocked && state.uri.path != '/blocked') return '/blocked';
+    if (!blocked && state.uri.path == '/blocked') return '/';
+    return null;
+  },
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
-    FlutterSecurityDetection.blockedRoute,
+    GoRoute(
+      path: '/blocked',
+      builder: (context, state) => const ShieldBlockedScreen(),
+    ),
   ],
 );
 
@@ -58,7 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Flutter Shield Example')),
+      appBar: AppBar(title: const Text('Security Detection Example')),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(

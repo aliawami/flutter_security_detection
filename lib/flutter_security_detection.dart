@@ -1,134 +1,131 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'dart:async';
+
+import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+
 import 'src/flutter_security_detection_channel.dart';
 import 'src/shield_config.dart';
 import 'src/shield_result.dart';
-export 'src/shield_threat.dart';
+
+export 'src/shield_blocked_screen.dart';
 export 'src/shield_config.dart';
+export 'src/shield_gate.dart';
 export 'src/shield_result.dart';
+export 'src/shield_threat.dart';
 
+/// Client-side device integrity checks.
+///
+/// These checks run on a device the attacker controls and can be bypassed by
+/// a determined attacker. Treat them as a deterrent and a UX layer, and
+/// enforce anything that matters on your server.
 class FlutterSecurityDetection {
-  static ShieldConfig _config = const ShieldConfig();
-  static ShieldResult? _cachedResult;
-  static Future<ShieldResult>? _inFlight;
+  FlutterSecurityDetection._();
 
-  /// Initialize once — typically in main() before runApp()
+  static ShieldConfig _config = const ShieldConfig();
+  static final ValueNotifier<ShieldResult?> _result = ValueNotifier(null);
+  static Future<ShieldResult>? _inFlight;
+  static _ResumeObserver? _observer;
+  static Timer? _timer;
+
+  /// The latest result, or null before the first check completes. Listen to
+  /// it to react when a runtime re-check changes the outcome (for example as
+  /// a `refreshListenable` of your router).
+  static ValueListenable<ShieldResult?> get resultListenable => _result;
+
+  /// The latest result, or null before the first check completes.
+  static ShieldResult? get lastResult => _result.value;
+
+  /// True when the latest result is a failing one. False before the first
+  /// check completes — use [ShieldGate] or await [init] to avoid that gap.
+  static bool get isBlocked => _result.value?.passed == false;
+
+  /// Initialize once — typically in main() before runApp().
   static Future<void> init({ShieldConfig config = const ShieldConfig()}) async {
+    _stopRuntimeChecks();
     _config = config;
+    _result.value = null;
 
     // devMode bypasses all native checks
     if (_config.devMode) {
-      _cachedResult = const ShieldResult(
-        passed: true,
-        isJailbroken: false,
-        isRooted: false,
-        isFridaDetected: false,
-        threats: [],
-      );
-      debugPrint('⚠️ FlutterShield: devMode is ON — all checks bypassed');
+      _result.value = ShieldResult.clean;
+      debugPrint('⚠️ FlutterSecurityDetection: devMode is ON — '
+          'all checks bypassed');
       return;
     }
 
-    _cachedResult = await FlutterSecurityDetectionChannel.checkDevice(_config);
-    if (!_cachedResult!.passed) {
-      _config.onThreatDetected?.call(_cachedResult!);
-    }
+    await _runCheck();
+    _startRuntimeChecks();
   }
 
-  /// Manual check — returns cached result if already checked
+  /// Manual check — returns the latest result if one exists.
   static Future<ShieldResult> check() async {
-    // Respect devMode even if check() is called directly
-    if (_config.devMode) {
-      return const ShieldResult(
-        passed: true,
-        isJailbroken: false,
-        isRooted: false,
-        isFridaDetected: false,
-        threats: [],
-      );
-    }
-
-    if (_cachedResult != null) return _cachedResult!;
-
-    // Deduplicate concurrent callers (e.g. rapid router redirects) so only
-    // one native check runs; everyone awaits the same future.
-    _inFlight ??= FlutterSecurityDetectionChannel.checkDevice(_config);
-    try {
-      _cachedResult = await _inFlight!;
-    } finally {
-      _inFlight = null;
-    }
-    return _cachedResult!;
+    final current = _result.value;
+    if (current != null) return current;
+    return _runCheck();
   }
 
-  /// Force a fresh check — ignores cache
-  static Future<ShieldResult> recheck() async {
-    if (_config.devMode) {
-      return const ShieldResult(
-        passed: true,
-        isJailbroken: false,
-        isRooted: false,
-        isFridaDetected: false,
-        threats: [],
-      );
-    }
-    _cachedResult = await FlutterSecurityDetectionChannel.checkDevice(_config);
-    return _cachedResult!;
+  /// Force a fresh check — ignores the cached result.
+  static Future<ShieldResult> recheck() => _runCheck();
+
+  // Deduplicates concurrent callers so only one native check runs; everyone
+  // awaits the same future.
+  static Future<ShieldResult> _runCheck() {
+    if (_config.devMode) return Future.value(ShieldResult.clean);
+    final config = _config;
+    return _inFlight ??= () async {
+      try {
+        final result =
+            await FlutterSecurityDetectionChannel.checkDevice(config);
+        _publish(result, config);
+        return result;
+      } finally {
+        _inFlight = null;
+      }
+    }();
   }
 
-  /// go_router redirect — plug directly into GoRouter
-  static Future<String?> routerRedirect(
-    BuildContext context,
-    GoRouterState state,
-  ) async {
-    final result = await check();
-
-    if (!result.passed && state.uri.path != _config.blockedRoutePath) {
-      return _config.blockedRoutePath;
-    }
-    return null;
+  static void _publish(ShieldResult result, ShieldConfig config) {
+    final changed = _result.value != result;
+    _result.value = result;
+    if (changed && !result.passed) config.onThreatDetected?.call(result);
   }
 
-  /// Pre-built blocked route for go_router routes list
-  static GoRoute get blockedRoute => GoRoute(
-        path: _config.blockedRoutePath,
-        builder: (context, state) =>
-            _config.blockedWidget ?? const _DefaultBlockedScreen(),
-      );
+  static void _startRuntimeChecks() {
+    if (_config.recheckOnResume) {
+      _observer = _ResumeObserver(() => unawaited(_runCheck()));
+      WidgetsBinding.instance.addObserver(_observer!);
+    }
+    final interval = _config.recheckInterval;
+    if (interval != null) {
+      _timer = Timer.periodic(interval, (_) => unawaited(_runCheck()));
+    }
+  }
+
+  static void _stopRuntimeChecks() {
+    final observer = _observer;
+    if (observer != null) WidgetsBinding.instance.removeObserver(observer);
+    _observer = null;
+    _timer?.cancel();
+    _timer = null;
+  }
+
+  /// Stops runtime re-checks and clears state. For tests.
+  @visibleForTesting
+  static void reset() {
+    _stopRuntimeChecks();
+    _config = const ShieldConfig();
+    _inFlight = null;
+    _result.value = null;
+  }
 }
 
-class _DefaultBlockedScreen extends StatelessWidget {
-  const _DefaultBlockedScreen();
+class _ResumeObserver with WidgetsBindingObserver {
+  _ResumeObserver(this._onResume);
+
+  final VoidCallback _onResume;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.security, color: Colors.red, size: 72),
-            const SizedBox(height: 24),
-            Text(
-              'Device Not Secure',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'This application cannot run on a compromised device.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.white54),
-            ),
-          ],
-        ),
-      ),
-    );
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _onResume();
   }
 }

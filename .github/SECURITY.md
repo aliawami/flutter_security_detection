@@ -7,8 +7,8 @@ Once `1.0.0` is published, the policy will be updated to cover the two most rece
 
 | Version | Supported          |
 |---------|--------------------|
-| 0.1.x   | ✅ Active support  |
-| < 0.1   | ❌ No longer supported |
+| 0.3.x   | ✅ Active support  |
+| < 0.3   | ❌ No longer supported |
 
 ---
 

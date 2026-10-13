@@ -1,3 +1,37 @@
+## 0.3.0
+
+**Breaking**
+
+* Removed the `go_router` dependency. The package is now router-agnostic.
+  `FlutterSecurityDetection.routerRedirect` and `.blockedRoute` are gone,
+  along with `ShieldConfig.blockedRoutePath` and `ShieldConfig.blockedWidget`.
+  Wrap your app in the new `ShieldGate` widget, or build a `go_router`
+  redirect from `isBlocked` and `resultListenable` — see the README.
+* Removed the `freezed` / `build_runner` toolchain. `ShieldResult` is now a
+  plain immutable class with the same fields, `==`, `hashCode` and
+  `toString`. It no longer has a generated `copyWith`.
+
+**New**
+
+* `ShieldGate` widget and public `ShieldBlockedScreen`.
+* Opt-in runtime re-checks: `ShieldConfig.recheckOnResume` and
+  `ShieldConfig.recheckInterval`.
+* `FlutterSecurityDetection.resultListenable`, `.lastResult` and `.isBlocked`.
+* README now has a "Security model" section: client-side checks are a
+  deterrent, not a security boundary.
+
+**Fixes**
+
+* `onThreatDetected` now fires for threats found by re-checks, not only the
+  first check at `init()`. It does not repeat for an unchanged result.
+* `recheck()` shares the in-flight de-duplication that `check()` had.
+* Replaced the stale template unit tests (Kotlin, Swift) that referenced a
+  non-existent `getPlatformVersion` method; added Dart tests for the public
+  API; CI now runs Kotlin unit tests, builds the iOS example and checks
+  formatting.
+* Finished the `flutter_shield` → `flutter_security_detection` rename in the
+  Gradle project name and the example app.
+
 ## 0.2.1
 
 * Added Swift Package Manager support for iOS. Apps using Flutter's SwiftPM
