@@ -1,5 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.aliAlawami.flutter_security_detection">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
   <!-- Android 11+ (API 30) filters package visibility. Without these
        declarations, PackageManager.getPackageInfo() throws
@@ -14,9 +13,16 @@
     <package android:name="com.noshufou.android.su" />
     <package android:name="com.thirdparty.superuser" />
     <package android:name="com.yellowes.su" />
+    <package android:name="me.weishu.kernelsu" />
+    <package android:name="me.bmax.apatch" />
+    <package android:name="io.github.vvb2060.magisk" />
+    <package android:name="io.github.huskydg.magisk" />
     <!-- Hook frameworks -->
     <package android:name="de.robv.android.xposed.installer" />
     <package android:name="org.lsposed.manager" />
+    <package android:name="org.meowcat.edxposed.manager" />
+    <package android:name="com.solohsu.android.edxp.manager" />
+    <package android:name="org.lsposed.lspatch" />
     <package android:name="com.saurik.substrate" />
     <package android:name="com.zachspong.temprootremovejb" />
     <package android:name="com.amphoras.hidemyroot" />

@@ -1,14 +1,20 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_security_detection/flutter_security_detection.dart';
+
+// Pass --dart-define=SHIELD_DEV_MODE=true to bypass all checks (e.g. when
+// developing on a simulator), and --dart-define=SHIELD_DEBUG_DETECTION=true
+// to also report debuggers / debuggable builds. See doc/DEVICE_TESTING.md.
+const _devMode = bool.fromEnvironment('SHIELD_DEV_MODE');
+const _debugDetection = bool.fromEnvironment('SHIELD_DEBUG_DETECTION');
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await FlutterSecurityDetection.init(
     config: ShieldConfig(
-      devMode: kDebugMode,
+      devMode: _devMode,
+      enableDebugDetection: _debugDetection,
       recheckOnResume: true,
       onThreatDetected: (result) {
         debugPrint('Threats: ${result.threats}');
@@ -31,10 +37,7 @@ final _router = GoRouter(
   },
   routes: [
     GoRoute(path: '/', builder: (context, state) => const HomeScreen()),
-    GoRoute(
-      path: '/blocked',
-      builder: (context, state) => const ShieldBlockedScreen(),
-    ),
+    GoRoute(path: '/blocked', builder: (context, state) => const BlockedPage()),
   ],
 );
 
@@ -44,6 +47,39 @@ class ExampleApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(routerConfig: _router);
+  }
+}
+
+/// Shows exactly which threats were found, so a device test is readable.
+/// A production app would use ShieldBlockedScreen or its own screen.
+class BlockedPage extends StatelessWidget {
+  const BlockedPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final result = FlutterSecurityDetection.lastResult;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Device Not Secure')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Threats found:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            for (final t in result?.threats ?? const <ShieldThreat>[])
+              Text('• ${t.name}', style: const TextStyle(color: Colors.red)),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: FlutterSecurityDetection.recheck,
+              child: const Text('Re-check'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

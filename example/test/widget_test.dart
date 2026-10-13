@@ -76,6 +76,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Device Not Secure'), findsOneWidget);
+    expect(find.text('• fridaPortOpen'), findsOneWidget);
     expect(find.text('Run Security Check'), findsNothing);
   });
 }

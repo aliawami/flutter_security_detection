@@ -35,26 +35,44 @@ internal object EmulatorDetector {
         return Pair(threats.isNotEmpty(), threats)
     }
 
-    // Check 1: Build properties that only appear on emulators
-    private fun hasSuspiciousBuildProps(): Boolean {
-        val suspiciousConditions = listOf(
-            Build.FINGERPRINT.startsWith("generic"),
-            Build.FINGERPRINT.startsWith("unknown"),
-            Build.FINGERPRINT.contains("vbox"),
-            Build.FINGERPRINT.contains("test-keys"),
-            Build.MODEL.contains("Emulator", ignoreCase = true),
-            Build.MODEL.contains("Android SDK built for x86", ignoreCase = true),
-            Build.MANUFACTURER.contains("Genymotion", ignoreCase = true),
-            Build.BRAND.startsWith("generic"),
-            Build.DEVICE.startsWith("generic"),
-            Build.PRODUCT.contains("sdk_gphone", ignoreCase = true),
-            Build.PRODUCT.contains("vbox", ignoreCase = true),
-            Build.PRODUCT.contains("emulator", ignoreCase = true),
-            Build.HARDWARE.contains("goldfish", ignoreCase = true),
-            Build.HARDWARE.contains("ranchu", ignoreCase = true),
-            Build.HARDWARE.contains("vbox86", ignoreCase = true),
-        )
-        return suspiciousConditions.any { it }
+    // Check 1: Build properties that only appear on emulators.
+    // Deliberately NOT included: a "test-keys" fingerprint (custom ROMs;
+    // reported separately as test_keys_found) and an "unknown" fingerprint
+    // prefix (seen on real devices).
+    private fun hasSuspiciousBuildProps(): Boolean = matchesEmulatorBuild(
+        fingerprint = Build.FINGERPRINT,
+        model = Build.MODEL,
+        manufacturer = Build.MANUFACTURER,
+        brand = Build.BRAND,
+        device = Build.DEVICE,
+        product = Build.PRODUCT,
+        hardware = Build.HARDWARE,
+    )
+
+    internal fun matchesEmulatorBuild(
+        fingerprint: String?,
+        model: String?,
+        manufacturer: String?,
+        brand: String?,
+        device: String?,
+        product: String?,
+        hardware: String?,
+    ): Boolean {
+        fun String?.has(s: String) = this?.contains(s, ignoreCase = true) == true
+        fun String?.starts(s: String) = this?.startsWith(s) == true
+        return fingerprint.starts("generic") ||
+                fingerprint.has("vbox") ||
+                model.has("Emulator") ||
+                model.has("Android SDK built for x86") ||
+                manufacturer.has("Genymotion") ||
+                brand.starts("generic") ||
+                device.starts("generic") ||
+                product.has("sdk_gphone") ||
+                product.has("vbox") ||
+                product.has("emulator") ||
+                hardware.has("goldfish") ||
+                hardware.has("ranchu") ||
+                hardware.has("vbox86")
     }
 
     // Check 2: Emulator-specific files on disk

@@ -17,6 +17,12 @@ internal object RootDetector {
         "/data/local/xbin/su",
         "/data/local/bin/su",
         "/data/local/su",
+        "/su/bin/su",
+        "/system/sd/xbin/su",
+        "/system/bin/failsafe/su",
+        "/vendor/bin/su",
+        "/system/app/Superuser.apk",
+        "/system/app/SuperSU.apk",
     )
 
     private val ROOT_PACKAGES = listOf(
@@ -27,6 +33,10 @@ internal object RootDetector {
         "com.noshufou.android.su",
         "com.thirdparty.superuser",
         "com.yellowes.su",
+        "me.weishu.kernelsu",              // KernelSU
+        "me.bmax.apatch",                  // APatch
+        "io.github.vvb2060.magisk",        // Magisk Alpha
+        "io.github.huskydg.magisk",        // Magisk Delta
     )
 
     private val DANGEROUS_PROPS = mapOf(
@@ -48,9 +58,17 @@ internal object RootDetector {
         return Pair(threats.isNotEmpty(), threats)
     }
 
-    // Check 1: su binary in common locations
+    // Check 1: su binary in common locations or anywhere on PATH
     private fun isSuBinaryPresent(): Boolean {
-        return SU_PATHS.any { path -> File(path).exists() }
+        return SU_PATHS.any { path -> File(path).exists() } ||
+                suOnPath(System.getenv("PATH")) { File(it).exists() }
+    }
+
+    internal fun suOnPath(path: String?, exists: (String) -> Boolean): Boolean {
+        if (path.isNullOrEmpty()) return false
+        return path.split(':')
+            .filter { it.isNotEmpty() }
+            .any { dir -> exists("${dir.trimEnd('/')}/su") }
     }
 
     // Check 2: Known root management apps installed

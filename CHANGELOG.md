@@ -1,3 +1,42 @@
+## 0.3.1
+
+Native detection fixes found in an audit of the Android and iOS detectors.
+
+**False-positive fixes (these could permanently block legitimate users)**
+
+* Android: the Frida library scan matched the bare substring `frida`, so any
+  mapped file with "Friday" in its name was flagged. It now matches only
+  `frida-agent`, `frida-gadget` and `re.frida.`, and the process scan matches
+  `frida-server`-style names instead of any `frida` in a command line.
+* Android: emulator detection no longer treats a `test-keys` fingerprint
+  (common on custom ROMs; already reported as `testKeysFound`) or an
+  `unknown` fingerprint prefix as an emulator.
+
+**False-negative fixes**
+
+* Android: the Xposed stack-trace check ran on a worker thread and could
+  never see Xposed frames; it now also inspects the main thread's stack.
+  Added the classic `XposedBridge` class-loader check.
+* Android: added KernelSU, APatch and Magisk Alpha/Delta root managers,
+  EdXposed and LSPatch managers, more `su` locations and a `PATH` search
+  for `su`.
+* iOS: added rootless-jailbreak indicators (`/var/jb`, `/var/binpack`,
+  Sileo, Zebra, libhooker, libsubstitute, TweakInject) so jailbreaks on iOS
+  15+ are no longer missed by the file checks.
+
+**Other**
+
+* Android: the Frida port check now has a 500 ms connect timeout.
+  Documented that it needs the `INTERNET` permission.
+* iOS: the symlink check uses `destinationOfSymbolicLink` (no file-timestamp
+  API, also catches dangling links); the spawn check reaps its child process.
+* Android: removed the deprecated `package` attribute from the library
+  manifest and the unreadable `/data/data/...xposed.installer` path check.
+* Added Kotlin unit tests for the detection logic, and
+  `doc/DEVICE_TESTING.md`, a guide for verifying the checks on a real device.
+* The example app now shows the actual threats on the blocked screen and is
+  configured with `--dart-define`s instead of `kDebugMode`.
+
 ## 0.3.0
 
 **Breaking**

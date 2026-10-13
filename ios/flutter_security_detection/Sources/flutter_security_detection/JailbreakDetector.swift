@@ -26,6 +26,18 @@ internal struct JailbreakDetector {
         "/etc/apt",
         "/bin/bash",
         "/bin/sh",
+        // Rootless jailbreaks (iOS 15+: Dopamine, palera1n rootless, XinaA15)
+        // keep everything under /var/jb and ship Sileo/Zebra, not Cydia.
+        "/var/jb",
+        "/var/binpack",
+        "/Applications/Sileo.app",
+        "/Applications/Zebra.app",
+        "/Applications/Installer.app",
+        "/usr/lib/libhooker.dylib",
+        "/usr/lib/libsubstitute.dylib",
+        "/usr/lib/substitute-inserter.dylib",
+        "/usr/lib/TweakInject",
+        "/Library/MobileSubstrate/DynamicLibraries",
     ]
     
     private static let suspiciousDylibs = [
@@ -118,7 +130,10 @@ private static func canFork() -> Bool {
     )
     
     if result == 0 {
-        kill(pid, SIGTERM)
+        // Reap the child so it does not linger as a zombie.
+        kill(pid, SIGKILL)
+        var status: Int32 = 0
+        waitpid(pid, &status, 0)
         return true
     }
     return false
@@ -139,20 +154,11 @@ private static func canFork() -> Bool {
             "/usr/share",
         ]
         
+        // destinationOfSymbolicLink succeeds only for a symlink (including a
+        // dangling one) and, unlike attributesOfItem, reads no file
+        // timestamps, so it needs no privacy-manifest reason.
         return suspiciousPaths.contains { path in
-            var isSymlink = false
-            var isDirectory: ObjCBool = false
-            
-            if FileManager.default.fileExists(
-                atPath: path,
-                isDirectory: &isDirectory
-            ) {
-                let attributes = try? FileManager.default
-                    .attributesOfItem(atPath: path)
-                let fileType = attributes?[.type] as? FileAttributeType
-                isSymlink = fileType == .typeSymbolicLink
-            }
-            return isSymlink
+            (try? FileManager.default.destinationOfSymbolicLink(atPath: path)) != nil
         }
     }
     

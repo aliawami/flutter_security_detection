@@ -304,6 +304,10 @@ config: ShieldConfig(devMode: false) // production
 
 **Android process scanning** — Due to Android's process namespace isolation and SELinux restrictions, `fridaProcessFound` is a best-effort signal. Port scanning and file detection are the primary Frida signals and work reliably across all Android versions.
 
+**Android `INTERNET` permission** — The Frida port check opens a loopback socket, which needs `<uses-permission android:name="android.permission.INTERNET"/>` in your app's manifest (most apps already have it). Without it that one check silently reports "not found"; every other check is unaffected. The plugin does not add the permission for you, so as not to impose it on every consumer.
+
+**Hidden root managers** — Magisk can randomize its app's package name and hide `su`, and KernelSU/APatch can hide from the app list. Package- and file-based root detection cannot see a manager that is hidden from your app.
+
 **Simulator** — Detection is intentionally skipped on the iOS Simulator at compile time via `#if targetEnvironment(simulator)`.
 
 **Client-side only** — See [Security model](#security-model--نموذج-الأمان) above. Every signal here can be defeated by an attacker who controls the device.

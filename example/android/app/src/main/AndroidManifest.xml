@@ -1,6 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Needed by the plugin's Frida port check (a loopback socket). Without
+         it that single check silently reports "not found". -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="flutter_shield_example"
+        android:label="Security Detection Example"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
