@@ -1,3 +1,76 @@
+## 0.3.1
+
+Native detection fixes found in an audit of the Android and iOS detectors.
+
+**False-positive fixes (these could permanently block legitimate users)**
+
+* Android: the Frida library scan matched the bare substring `frida`, so any
+  mapped file with "Friday" in its name was flagged. It now matches only
+  `frida-agent`, `frida-gadget` and `re.frida.`, and the process scan matches
+  `frida-server`-style names instead of any `frida` in a command line.
+* Android: emulator detection no longer treats a `test-keys` fingerprint
+  (common on custom ROMs; already reported as `testKeysFound`) or an
+  `unknown` fingerprint prefix as an emulator.
+
+**False-negative fixes**
+
+* Android: the Xposed stack-trace check ran on a worker thread and could
+  never see Xposed frames; it now also inspects the main thread's stack.
+  Added the classic `XposedBridge` class-loader check.
+* Android: added KernelSU, APatch and Magisk Alpha/Delta root managers,
+  EdXposed and LSPatch managers, more `su` locations and a `PATH` search
+  for `su`.
+* iOS: added rootless-jailbreak indicators (`/var/jb`, `/var/binpack`,
+  Sileo, Zebra, libhooker, libsubstitute, TweakInject) so jailbreaks on iOS
+  15+ are no longer missed by the file checks.
+
+**Other**
+
+* Android: the Frida port check now has a 500 ms connect timeout.
+  Documented that it needs the `INTERNET` permission.
+* iOS: the symlink check uses `destinationOfSymbolicLink` (no file-timestamp
+  API, also catches dangling links); the spawn check reaps its child process.
+* Android: removed the deprecated `package` attribute from the library
+  manifest and the unreadable `/data/data/...xposed.installer` path check.
+* Added Kotlin unit tests for the detection logic, and
+  `doc/DEVICE_TESTING.md`, a guide for verifying the checks on a real device.
+* The example app now shows the actual threats on the blocked screen and is
+  configured with `--dart-define`s instead of `kDebugMode`.
+
+## 0.3.0
+
+**Breaking**
+
+* Removed the `go_router` dependency. The package is now router-agnostic.
+  `FlutterSecurityDetection.routerRedirect` and `.blockedRoute` are gone,
+  along with `ShieldConfig.blockedRoutePath` and `ShieldConfig.blockedWidget`.
+  Wrap your app in the new `ShieldGate` widget, or build a `go_router`
+  redirect from `isBlocked` and `resultListenable` — see the README.
+* Removed the `freezed` / `build_runner` toolchain. `ShieldResult` is now a
+  plain immutable class with the same fields, `==`, `hashCode` and
+  `toString`. It no longer has a generated `copyWith`.
+
+**New**
+
+* `ShieldGate` widget and public `ShieldBlockedScreen`.
+* Opt-in runtime re-checks: `ShieldConfig.recheckOnResume` and
+  `ShieldConfig.recheckInterval`.
+* `FlutterSecurityDetection.resultListenable`, `.lastResult` and `.isBlocked`.
+* README now has a "Security model" section: client-side checks are a
+  deterrent, not a security boundary.
+
+**Fixes**
+
+* `onThreatDetected` now fires for threats found by re-checks, not only the
+  first check at `init()`. It does not repeat for an unchanged result.
+* `recheck()` shares the in-flight de-duplication that `check()` had.
+* Replaced the stale template unit tests (Kotlin, Swift) that referenced a
+  non-existent `getPlatformVersion` method; added Dart tests for the public
+  API; CI now runs Kotlin unit tests, builds the iOS example and checks
+  formatting.
+* Finished the `flutter_shield` → `flutter_security_detection` rename in the
+  Gradle project name and the example app.
+
 ## 0.2.1
 
 * Added Swift Package Manager support for iOS. Apps using Flutter's SwiftPM

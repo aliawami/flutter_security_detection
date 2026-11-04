@@ -9,15 +9,13 @@ void main() {
   const channel = MethodChannel('com.flutter_shield/security');
 
   tearDown(() {
-    TestDefaultBinaryMessengerBinding
-        .instance.defaultBinaryMessenger
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
   });
 
   group('FlutterShieldChannel.checkDevice', () {
     test('returns passed result when native returns clean', () async {
-      TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         if (call.method == 'checkDevice') {
           return {
@@ -40,8 +38,7 @@ void main() {
     });
 
     test('returns failed result when native detects frida', () async {
-      TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         if (call.method == 'checkDevice') {
           return {
@@ -66,8 +63,7 @@ void main() {
 
     test('fails open with checkFailed when native throws PlatformException',
         () async {
-      TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         throw PlatformException(code: 'SHIELD_ERROR', message: 'crash');
       });
@@ -96,8 +92,7 @@ void main() {
 
     test('unknown native threat strings do not crash and still block',
         () async {
-      TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         return {
           'passed': false,
@@ -121,8 +116,7 @@ void main() {
     test('passes correct arguments to native', () async {
       Map<String, dynamic>? capturedArgs;
 
-      TestDefaultBinaryMessengerBinding
-          .instance.defaultBinaryMessenger
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
           .setMockMethodCallHandler(channel, (call) async {
         capturedArgs = Map<String, dynamic>.from(
           call.arguments as Map,

@@ -69,8 +69,8 @@ void main() {
     test('never throws on malformed input', () {
       expect(ShieldThreat.fromString(''), ShieldThreat.unknown);
       expect(ShieldThreat.fromString('__'), ShieldThreat.unknown);
-      expect(ShieldThreat.fromString('_leading_underscore'),
-          ShieldThreat.unknown);
+      expect(
+          ShieldThreat.fromString('_leading_underscore'), ShieldThreat.unknown);
     });
 
     test('every Android native threat string maps to a real enum value', () {

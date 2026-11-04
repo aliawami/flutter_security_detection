@@ -10,4 +10,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "flutter_shield"
+rootProject.name = "flutter_security_detection"

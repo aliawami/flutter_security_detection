@@ -1,5 +1,5 @@
-name: flutter_shield_example
-description: "Demonstrates how to use the flutter_shield plugin."
+name: flutter_security_detection_example
+description: "Demonstrates how to use the flutter_security_detection plugin."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

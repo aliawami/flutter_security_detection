@@ -1,7 +1,6 @@
 import 'package:flutter_security_detection/src/shield_config.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-
 void main() {
   group('ShieldConfig defaults', () {
     test('all detections enabled by default except debug', () {
@@ -15,21 +14,22 @@ void main() {
       expect(config.enableDebugDetection, false);
     });
 
-    test('blocked route path defaults correctly', () {
+    test('runtime re-checks are opt-in', () {
       const config = ShieldConfig();
-      expect(config.blockedRoutePath, '/blocked');
+      expect(config.recheckOnResume, false);
+      expect(config.recheckInterval, isNull);
     });
 
     test('custom config overrides defaults', () {
       const config = ShieldConfig(
         enableFridaDetection: false,
         enableDebugDetection: true,
-        blockedRoutePath: '/security-error',
+        recheckOnResume: true,
       );
 
       expect(config.enableFridaDetection, false);
       expect(config.enableDebugDetection, true);
-      expect(config.blockedRoutePath, '/security-error');
+      expect(config.recheckOnResume, true);
     });
   });
 }
