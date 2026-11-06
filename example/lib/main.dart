@@ -52,31 +52,66 @@ class ExampleApp extends StatelessWidget {
 
 /// Shows exactly which threats were found, so a device test is readable.
 /// A production app would use ShieldBlockedScreen or its own screen.
-class BlockedPage extends StatelessWidget {
+class BlockedPage extends StatefulWidget {
   const BlockedPage({super.key});
 
   @override
+  State<BlockedPage> createState() => _BlockedPageState();
+}
+
+class _BlockedPageState extends State<BlockedPage> {
+  bool _checking = false;
+  DateTime? _lastChecked;
+
+  Future<void> _recheck() async {
+    setState(() => _checking = true);
+    await FlutterSecurityDetection.recheck();
+    if (!mounted) return;
+    setState(() {
+      _checking = false;
+      _lastChecked = DateTime.now();
+    });
+  }
+
+  String _time(DateTime t) => t.toIso8601String().substring(11, 19);
+
+  @override
   Widget build(BuildContext context) {
-    final result = FlutterSecurityDetection.lastResult;
     return Scaffold(
       appBar: AppBar(title: const Text('Device Not Secure')),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Threats found:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            for (final t in result?.threats ?? const <ShieldThreat>[])
-              Text('• ${t.name}', style: const TextStyle(color: Colors.red)),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: FlutterSecurityDetection.recheck,
-              child: const Text('Re-check'),
-            ),
-          ],
+        child: ValueListenableBuilder<ShieldResult?>(
+          valueListenable: FlutterSecurityDetection.resultListenable,
+          builder: (context, result, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Threats found:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              for (final t in result?.threats ?? const <ShieldThreat>[])
+                Text('• ${t.name}', style: const TextStyle(color: Colors.red)),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _checking ? null : _recheck,
+                child: _checking
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text('Re-check'),
+              ),
+              if (_lastChecked != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Last checked ${_time(_lastChecked!)} — '
+                  '${result?.threats.length ?? 0} threat(s) still found',
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
