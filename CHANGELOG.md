@@ -2,6 +2,15 @@
 
 Native detection fixes found in an audit of the Android and iOS detectors.
 
+**Kotlin 2.4 compatibility**
+
+* Android: migrated `kotlinOptions { jvmTarget }` to the
+  `kotlin { compilerOptions { jvmTarget } }` DSL. `kotlinOptions` is an error
+  in Kotlin 2.4, so apps on Kotlin 2.4 failed to build with this plugin.
+  The example app now builds with Kotlin 2.4.0, so CI covers it. Thanks to
+  @elesdody5 ([#35](https://github.com/aliawami/flutter_security_detection/pull/35)).
+  The new DSL requires Kotlin 2.0 or newer in consuming apps.
+
 **False-positive fixes (these could permanently block legitimate users)**
 
 * Android: the Frida library scan matched the bare substring `frida`, so any
