@@ -79,4 +79,21 @@ void main() {
     expect(find.text('• fridaPortOpen'), findsOneWidget);
     expect(find.text('Run Security Check'), findsNothing);
   });
+
+  testWidgets('Re-check on the blocked page gives visible feedback', (
+    WidgetTester tester,
+  ) async {
+    mockNativeCheck(passed: false, threats: ['frida_port_open']);
+    await FlutterSecurityDetection.init();
+
+    await tester.pumpWidget(const ExampleApp());
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Last checked'), findsNothing);
+
+    await tester.tap(find.text('Re-check'));
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('Last checked'), findsOneWidget);
+    expect(find.textContaining('1 threat(s) still found'), findsOneWidget);
+  });
 }
