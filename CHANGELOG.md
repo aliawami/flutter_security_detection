@@ -1,3 +1,14 @@
+## 0.3.2
+
+* `ShieldBlockedScreen` (the default `ShieldGate` blocked screen) no longer
+  depends on `package:flutter/material.dart`, which Flutter 3.50 deprecates.
+  It is built from core widgets only, so it also works in Cupertino and
+  custom-widget apps and needs no new dependency or newer Flutter. Visual
+  change: the Material shield icon is replaced by a red "!" badge.
+* The example app now imports Material from `package:material_ui` (requires
+  Flutter 3.47+; the package itself is unaffected).
+* No detection changes.
+
 ## 0.3.1
 
 Native detection fixes found in an audit of the Android and iOS detectors.
