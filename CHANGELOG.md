@@ -7,6 +7,8 @@
   change: the Material shield icon is replaced by a red "!" badge.
 * The example app now imports Material from `package:material_ui` (requires
   Flutter 3.47+; the package itself is unaffected).
+* The example app's Android build is updated to Gradle 9.5.0, Android Gradle
+  Plugin 9.3.1 and Kotlin 2.4.20 (Flutter 3.50 now refuses Gradle below 9.3.1).
 * No detection changes.
 
 ## 0.3.1
