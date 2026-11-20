@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_security_detection/flutter_security_detection.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -170,8 +170,9 @@ void main() {
   });
 
   group('ShieldGate', () {
-    Widget app() => const MaterialApp(
-          home: ShieldGate(
+    Widget app() => const Directionality(
+          textDirection: TextDirection.ltr,
+          child: ShieldGate(
             loading: Text('loading'),
             blocked: Text('blocked'),
             child: Text('protected'),
@@ -215,8 +216,9 @@ void main() {
     testWidgets('default blocked screen is used when none is given',
         (tester) async {
       threats = ['frida_port_open'];
-      await tester.pumpWidget(const MaterialApp(
-        home: ShieldGate(child: Text('protected')),
+      await tester.pumpWidget(const Directionality(
+        textDirection: TextDirection.ltr,
+        child: ShieldGate(child: Text('protected')),
       ));
       await tester.pumpAndSettle();
 
